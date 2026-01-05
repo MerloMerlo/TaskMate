@@ -32,7 +32,8 @@
                 </div>
             </div>
 
-            <button id="btn-save-config" class="primary-btn">开始使用</button>
+            <button id="btn-save-config" class="primary-btn">保存并进入</button>
+            <button id="btn-cancel-config" class="secondary-btn hidden" style="margin-top: 10px; width: 100%;">取消</button>
         </div>
     </div>
 
@@ -49,6 +50,7 @@
             </div>
             <div class="header-right">
                 <span id="current-user-display">User</span>
+                <button id="btn-open-settings" title="设置">⚙️</button>
                 <button id="btn-open-my-day" class="accent-btn">我的今日看板</button>
             </div>
         </header>
@@ -63,14 +65,20 @@
     <div id="my-day-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>我的每日计划</h2>
+                <div style="display: flex; align-items: center;">
+                    <h2 style="margin: 0;">我的每日计划</h2>
+                    <span id="modal-date-display"></span>
+                </div>
                 <button class="close-modal">×</button>
             </div>
             
             <div class="modal-body">
                 <!-- LEFT: PLAN -->
                 <div class="column plan-column">
-                    <h3>今日目标 (Morning)</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>今日目标 (Morning)</h3>
+                        <button id="btn-copy-prev" class="add-btn" title="复制昨天的目标" style="padding: 4px 12px; font-size: 0.8rem; width: auto; margin: 0;">📑 复制昨日</button>
+                    </div>
                     <div class="task-list" id="plan-list">
                         <!-- Plan items -->
                     </div>

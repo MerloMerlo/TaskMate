@@ -29,6 +29,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (config.username && config.syncDir) {
         currentUser = config.username;
         document.getElementById('current-user-display').textContent = currentUser;
+        
+        // Pre-fill setup form for editing
+        document.getElementById('setup-username').value = config.username;
+        document.getElementById('setup-syncpath').value = config.syncDir;
+        document.getElementById('setup-password').value = config.password || '';
+
         showScreen('dashboard');
         refreshDashboard();
     } else {
@@ -45,6 +51,14 @@ window.addEventListener('DOMContentLoaded', async () => {
 function showScreen(name) {
     Object.values(screens).forEach(el => el.classList.add('hidden'));
     screens[name].classList.remove('hidden');
+    
+    // Toggle cancel button based on context
+    const cancelBtn = document.getElementById('btn-cancel-config');
+    if (name === 'setup' && currentUser) {
+        cancelBtn.classList.remove('hidden');
+    } else {
+        cancelBtn.classList.add('hidden');
+    }
 }
 
 function changeDate(delta) {
@@ -75,6 +89,14 @@ document.getElementById('btn-save-config').onclick = async () => {
     refreshDashboard();
 };
 
+document.getElementById('btn-cancel-config').onclick = () => {
+    showScreen('dashboard');
+};
+
+document.getElementById('btn-open-settings').onclick = () => {
+    showScreen('setup');
+};
+
 // Dashboard Logic
 async function refreshDashboard() {
     allUsersData = await window.api.loadTasks(currentDate);
@@ -101,6 +123,11 @@ function renderTeamGrid() {
         let actualHtml = userData.actual.map(t => {
             let classes = 'ro-item';
             let badge = '';
+            
+            if (t.source === 'error') {
+                return `<div class="ro-item"><span class="ro-error">${t.text}</span></div>`;
+            }
+
             if (t.source === 'added') badge = '<span class="ro-new">新</span>';
             if (!t.done) classes += ' ro-failed';
             return `<div class="${classes}">${badge} ${t.text}</div>`;
@@ -134,6 +161,12 @@ document.getElementById('btn-open-my-day').onclick = () => {
     };
     // Deep copy to avoid mutating reference before save
     currentData = JSON.parse(JSON.stringify(myData));
+    
+    // Update Date Display
+    const d = new Date(currentData.date);
+    const dateStr = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+    document.getElementById('modal-date-display').textContent = dateStr;
+
     renderMyDayEditor();
     modal.classList.remove('hidden');
 };
@@ -206,6 +239,34 @@ window.toggleActualDone = (index, checked) => {
 window.deleteActualItem = (index) => {
     currentData.actual.splice(index, 1);
     renderMyDayEditor();
+};
+
+// Copy Previous Day Logic
+document.getElementById('btn-copy-prev').onclick = async () => {
+    // 1. Calculate previous date
+    const today = new Date(currentData.date);
+    today.setDate(today.getDate() - 1);
+    const prevDateStr = today.toISOString().split('T')[0];
+
+    // 2. Load previous tasks
+    const prevTasks = await window.api.loadTasks(prevDateStr);
+    
+    // 3. Find current user's data
+    const myPrevData = prevTasks.find(u => u.user === currentUser);
+
+    if (myPrevData && myPrevData.plan && myPrevData.plan.length > 0) {
+        // 4. Append to current plan (avoiding duplicates if needed, but for now just append)
+        myPrevData.plan.forEach(task => {
+            currentData.plan.push({
+                id: crypto.randomUUID(), // Generate new ID
+                text: task.text,
+                done: false
+            });
+        });
+        renderMyDayEditor();
+    } else {
+        alert(`未找到您在 ${prevDateStr} 的目标记录`);
+    }
 };
 
 // Sync Logic
