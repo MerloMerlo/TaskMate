@@ -1,0 +1,45 @@
+{
+  "name": "taskmate-p2p",
+  "version": "1.0.0",
+  "description": "Secure P2P Task Management for Small Teams",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "keywords": [
+    "todo",
+    "p2p",
+    "secure",
+    "electron"
+  ],
+  "author": "Trae",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "chokidar": "^3.5.3",
+    "fs-extra": "^11.2.0",
+    "uuid": "^9.0.1"
+  },
+  "build": {
+    "appId": "com.taskmate.p2p",
+    "productName": "TaskMate P2P",
+    "win": {
+      "target": "nsis",
+      "sign": null,
+      "verifyUpdateCodeSignature": false
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.productivity"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
