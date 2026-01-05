@@ -101,6 +101,13 @@ button:active {
 }
 
 /* Dashboard */
+#dashboard-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
 header {
     background: var(--surface);
     padding: 1rem 2rem;
@@ -108,8 +115,17 @@ header {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
 }
 .header-left { display: flex; align-items: center; gap: 2rem; }
+
+.header-left h1 {
+    background: linear-gradient(135deg, #2563eb, #c850c0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+}
+
 .date-picker-container { display: flex; align-items: center; gap: 0.5rem; }
 
 #team-grid {
@@ -118,7 +134,8 @@ header {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
     overflow-y: auto;
-    height: calc(100vh - 80px);
+    flex: 1;
+    height: auto;
 }
 
 .user-card {
