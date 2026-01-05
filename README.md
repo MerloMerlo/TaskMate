@@ -1,63 +1,101 @@
-# TaskMate P2P
+# TaskMate P2P 团队协作工具
 
-Designed for small teams (7-8 people), this tool provides a secure, serverless workflow management system using local P2P synchronization.
+这是一款专为小型团队（约 7-8 人）设计的去中心化（P2P）任务管理工具。它无需中央服务器，通过本地网络同步数据，确保信息安全且完全掌控在团队手中。
 
-## Prerequisites
+## 🌟 核心特性
 
-1.  **Node.js**: Installed on your machine.
-2.  **Syncthing**: Installed and running on all team members' machines.
-    *   **Windows**: Recommended to use [SyncTrayzor](https://github.com/canton7/SyncTrayzor/releases) (Built-in GUI, easier to use).
-    *   **macOS**: Recommended to use [Syncthing for macOS](https://github.com/syncthing/syncthing-macos/releases) (.dmg installer).
-    *   **Setup**:
-        *   Create a shared folder (e.g., `TaskMate_Sync`).
-        *   **CRITICAL STEP**: Edit the folder -> "Sharing" tab -> Check all team members' devices. If it says "Unshared", data will NOT sync!
-        *   Share it with all team members via Device IDs.
-        *   **Important**: Ensure all members have Read/Write access.
+*   **去中心化**：基于 Syncthing 进行 P2P 数据同步，无服务器依赖。
+*   **安全加密**：所有任务数据经过高强度加密存储，只有持有相同“团队密钥”的成员才能查看。
+*   **简单易用**：晨间计划、晚间复盘，两步走工作流，清晰直观。
+*   **跨平台**：支持 Windows 和 macOS。
 
-## Installation
+---
 
-1.  Open a terminal in this directory.
-2.  Install dependencies:
+## 🛠️ 前置准备（非常重要）
+
+在使用本软件前，必须确保每位成员电脑上都已正确配置 **Syncthing**。
+
+### 1. 安装 Syncthing
+*   **Windows 用户**: 推荐下载 [SyncTrayzor](https://github.com/canton7/SyncTrayzor/releases) (自带界面，更易用)。
+*   **macOS 用户**: 推荐下载 [Syncthing for macOS](https://github.com/syncthing/syncthing-macos/releases) (.dmg 安装包)。
+
+### 2. 组建同步网络（由组长操作）
+1.  **收集 ID**：让每位成员在 Syncthing 中查看并复制自己的“设备 ID”。
+2.  **添加设备**：组长在 Syncthing 中依次“添加远程设备”，输入成员 ID。
+3.  **创建文件夹**：创建一个名为 `TaskMate_Sync` 的文件夹。
+4.  **关键步骤 - 共享文件夹**：
+    *   在文件夹选项中，切换到 **"共享 (Sharing)"** 标签页。
+    *   **必须勾选所有成员的设备**。如果这里显示“非共享 (Unshared)”，数据将无法发给别人！
+5.  **成员接受**：成员在自己的 Syncthing 上点击“同意”加入文件夹。
+
+---
+
+## 📦 安装与运行
+
+### 直接使用（推荐）
+直接运行分发的安装包（`.exe` 或 `.dmg`）即可。
+
+### 开发环境运行
+如果您是开发者，可以按以下步骤运行源码：
+
+1.  打开终端，进入项目目录。
+2.  安装依赖：
     ```bash
     npm install
     ```
+3.  启动开发版：
+    ```bash
+    npm start
+    ```
 
-## Running Development Version
+### 打包分发
+*   **Windows**: 运行 `npm run dist`，产物在 `dist` 目录。
+*   **macOS**: 需要在 Mac 电脑上运行相同命令。
 
-```bash
-npm start
-```
+---
 
-## Building for Distribution (Windows .exe)
+## 📖 使用指南
 
-To create a standalone executable for your team:
+### 1. 首次配置
+第一次打开软件时，您需要填写以下信息：
+*   **您的姓名**: 请输入易于识别的昵称（如 "Alice"），将显示在看板上。
+*   **团队密钥**: **这是解密的关键！** 请输入组长分发的统一密码。全员必须完全一致，否则会提示“解密失败”。
+*   **同步文件夹**: 选择您在 Syncthing 中设置的 `TaskMate_Sync` 文件夹。
 
-```bash
-npm run dist
-```
-The output file will be in the `dist` folder.
+*注：如需修改配置，可点击右上角的 ⚙️ 设置按钮。*
 
-## Usage Guide
+### 2. 每日工作流
 
-### 1. Initial Setup (First Run)
-*   **Username**: Enter your unique name (e.g., "Alice").
-*   **Team Key**: Enter the shared password decided by the team leader. Everyone must use the **exact same password** to decrypt each other's files.
-*   **Sync Folder**: Select the Syncthing folder you created.
+#### ☀️ 晨间计划 (Morning)
+1.  点击右上角的 **“我的今日看板”**。
+2.  点击 **“📑 复制昨日”** 快速导入昨天未完成的工作（可选）。
+3.  在 **左侧 (今日目标)** 列表，点击 **“+ 添加目标”**，输入今天要完成的任务。
+4.  点击 **“保存并同步”**。您的计划将即时推送到团队看板。
 
-### 2. Daily Workflow
-*   **Morning**: Click "My Daily Plan", add your goals in the **Left Column**, then Save.
-*   **Evening**:
-    1.  Open "My Daily Plan".
-    2.  Click **Sync** to copy morning goals to the **Right Column** (Actual).
-    3.  Check off completed items.
-    4.  Add any unplanned tasks directly to the Right Column (they will show as **Green**).
-    5.  If a planned task wasn't finished, uncheck it in the Right Column (it will show as **Red**).
-    6.  Save.
+#### 🌙 晚间复盘 (Evening)
+1.  再次打开 **“我的今日看板”**。
+2.  点击中间的 **“➡ 同步”** 按钮，将早上的计划复制到右侧。
+3.  **勾选**已完成的任务。
+4.  如果有临时新增的工作，直接在右侧点击 **“+ 添加完成项”**（会自动标记为绿色“新”）。
+5.  如果有任务没完成，**取消勾选**（会自动标记为红色删除线）。
+6.  点击 **“保存并同步”**。
 
-### 3. Team Dashboard
-The main screen automatically updates when Syncthing syncs files from other members. You will see everyone's progress in real-time.
+### 3. 查看团队进度
+主界面即是团队看板。当 Syncthing 后台同步文件完成后，界面会自动刷新，展示所有人的最新进度。
+*   点击顶部的日期切换按钮 `◀` `▶`，可以回顾历史记录。
 
-## Troubleshooting
+---
 
-*   **Decryption Failed**: Ensure you are using the correct Team Key. If you changed the key, you cannot read old files.
-*   **Not Syncing**: Check Syncthing status. This app only reads/writes files; Syncthing handles the network transfer.
+## ❓ 常见问题排查
+
+**Q: 为什么我看不到别人的任务？**
+A: 
+1. 检查 Syncthing 是否正常运行且显示“已连接”。
+2. 检查 Syncthing 文件夹是否显示“非共享”？如果是，请组长在文件夹选项里勾选大家。
+3. 检查软件右上角的日期是否是“今天”。
+
+**Q: 看到红色提示“⚠️ 解密失败：团队密钥不匹配”？**
+A: 这说明文件同步过来了，但您的密码错了。请点击右上角 ⚙️ 设置按钮，重新输入正确的团队密钥。
+
+**Q: 为什么我的任务别人看不到？**
+A: 检查您的 Syncthing 是否把文件发出去了（Upload 速率是否有变化）。
