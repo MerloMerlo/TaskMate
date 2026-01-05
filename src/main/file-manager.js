@@ -19,7 +19,7 @@ class FileManager {
             return JSON.parse(decrypted);
         } catch (err) {
             console.error(`Failed to load ${filePath}:`, err.message);
-            return null;
+            return { _error: true, message: err.message };
         }
     }
 
@@ -40,8 +40,25 @@ class FileManager {
 
             const filePath = path.join(syncDir, file);
             const data = await this.loadFile(filePath, password);
+            
             if (data) {
-                tasks.push(data);
+                if (data._error) {
+                    // Try to extract username from filename: YYYY-MM-DD_username.enc
+                    // Split by first underscore and last dot
+                    const parts = file.replace('.enc', '').split('_');
+                    if (parts.length >= 2) {
+                        const username = parts.slice(1).join('_'); // Handle usernames with underscores
+                        tasks.push({
+                            user: username,
+                            date: date,
+                            plan: [],
+                            actual: [{ text: "⚠️ 解密失败：团队密钥不匹配", done: false, source: 'error' }],
+                            _error: true
+                        });
+                    }
+                } else {
+                    tasks.push(data);
+                }
             }
         }
         return tasks;

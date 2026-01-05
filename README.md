@@ -10,6 +10,7 @@ Designed for small teams (7-8 people), this tool provides a secure, serverless w
     *   **macOS**: Recommended to use [Syncthing for macOS](https://github.com/syncthing/syncthing-macos/releases) (.dmg installer).
     *   **Setup**:
         *   Create a shared folder (e.g., `TaskMate_Sync`).
+        *   **CRITICAL STEP**: Edit the folder -> "Sharing" tab -> Check all team members' devices. If it says "Unshared", data will NOT sync!
         *   Share it with all team members via Device IDs.
         *   **Important**: Ensure all members have Read/Write access.
 
