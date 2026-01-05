@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMate P2P</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- SETUP SCREEN -->
+    <div id="setup-screen" class="screen hidden">
+        <div class="setup-card">
+            <h2>欢迎使用 TaskMate</h2>
+            <p>请配置您的个人信息与同步设置</p>
+            
+            <div class="form-group">
+                <label>您的姓名 (ID)</label>
+                <input type="text" id="setup-username" placeholder="例如: Alice">
+            </div>
+
+            <div class="form-group">
+                <label>团队密钥 (全员一致)</label>
+                <input type="password" id="setup-password" placeholder="输入你们约定的共同密码">
+            </div>
+
+            <div class="form-group">
+                <label>同步文件夹 (Syncthing)</label>
+                <div class="input-row">
+                    <input type="text" id="setup-syncpath" readonly placeholder="选择 Syncthing 同步目录">
+                    <button id="btn-select-folder">选择</button>
+                </div>
+            </div>
+
+            <button id="btn-save-config" class="primary-btn">开始使用</button>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboard-screen" class="screen hidden">
+        <header>
+            <div class="header-left">
+                <h1>TaskMate</h1>
+                <div class="date-picker-container">
+                    <button id="prev-day">◀</button>
+                    <input type="date" id="current-date-picker">
+                    <button id="next-day">▶</button>
+                </div>
+            </div>
+            <div class="header-right">
+                <span id="current-user-display">User</span>
+                <button id="btn-open-my-day" class="accent-btn">我的今日看板</button>
+            </div>
+        </header>
+
+        <main id="team-grid">
+            <!-- Team members' cards will be injected here -->
+            <div class="empty-state">暂无数据，等待同步...</div>
+        </main>
+    </div>
+
+    <!-- MY DAY MODAL -->
+    <div id="my-day-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>我的每日计划</h2>
+                <button class="close-modal">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- LEFT: PLAN -->
+                <div class="column plan-column">
+                    <h3>今日目标 (Morning)</h3>
+                    <div class="task-list" id="plan-list">
+                        <!-- Plan items -->
+                    </div>
+                    <button class="add-btn" onclick="addPlanItem()">+ 添加目标</button>
+                </div>
+
+                <!-- ACTIONS -->
+                <div class="column actions-column">
+                    <button id="btn-sync-plan" title="将目标同步到完成列表">➡ 同步</button>
+                </div>
+
+                <!-- RIGHT: ACTUAL -->
+                <div class="column actual-column">
+                    <h3>实际完成 (Evening)</h3>
+                    <div class="task-list" id="actual-list">
+                        <!-- Actual items -->
+                    </div>
+                    <button class="add-btn" onclick="addActualItem()">+ 添加完成项</button>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <span id="save-status"></span>
+                <button id="btn-save-my-day" class="primary-btn">保存并同步</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
