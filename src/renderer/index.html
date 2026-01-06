@@ -134,6 +134,38 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ACCEPT FOLDER MODAL (Nested) -->
+            <div id="modal-accept-folder" class="modal hidden" style="position: absolute;">
+                <div class="modal-content" style="width: 400px; height: auto;">
+                    <div class="modal-header"><h3>接受同步文件夹请求</h3><button class="close-sub-modal">×</button></div>
+                    <div class="modal-body" style="flex-direction: column;">
+                        <p style="color: #666; font-size: 0.9rem;">收到新的文件夹共享请求：</p>
+                        <div class="form-group">
+                            <label>文件夹名称</label>
+                            <input type="text" id="accept-folder-label" readonly disabled>
+                        </div>
+                        <div class="form-group">
+                            <label>文件夹 ID</label>
+                            <input type="text" id="accept-folder-id" readonly disabled>
+                        </div>
+                        <div class="form-group hidden">
+                            <input type="text" id="accept-folder-device">
+                        </div>
+                        <div class="form-group">
+                            <label>请选择本地保存路径</label>
+                            <div class="input-row">
+                                <input type="text" id="accept-folder-path" readonly placeholder="选择空文件夹">
+                                <button id="btn-select-accept-folder-path">选择</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="btn-confirm-accept-folder" class="primary-btn">接受并同步</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 

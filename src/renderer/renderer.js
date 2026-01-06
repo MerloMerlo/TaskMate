@@ -56,6 +56,31 @@ window.addEventListener('DOMContentLoaded', async () => {
         refreshDashboard();
     });
 
+    // Listen for Syncthing events (New Device / New Folder)
+    window.api.onSyncthingEvent((event, { type, data }) => {
+        console.log("Syncthing Event:", type, data);
+        
+        if (type === 'device-rejected') {
+            const { device, name, address } = data;
+            const userChoice = confirm(`收到新的设备连接请求！\n\n设备 ID: ${device}\n设备名称: ${name || '未知'}\n地址: ${address}\n\n是否添加此设备？`);
+            if (userChoice) {
+                const myName = document.getElementById('setup-username').value || 'TaskMate User';
+                window.api.addSyncthingDevice({ id: device, name: name || 'New Device' });
+                alert(`已添加设备 ${name}。\n请确保对方也添加了您的 ID。`);
+                refreshSyncthingLists();
+            }
+        } else if (type === 'folder-rejected') {
+            const { folder, folderLabel, device } = data;
+            // Show custom modal for folder acceptance to choose path
+            document.getElementById('accept-folder-id').value = folder;
+            document.getElementById('accept-folder-label').value = folderLabel;
+            document.getElementById('accept-folder-device').value = device;
+            document.getElementById('accept-folder-path').value = ''; // Reset path
+            
+            document.getElementById('modal-accept-folder').classList.remove('hidden');
+        }
+    });
+
     // --- DEBUG: Explicitly bind settings button here to ensure DOM is ready ---
     console.log("DOMContentLoaded: Binding settings button...");
     const settingsBtn = document.getElementById('btn-open-settings');
@@ -313,6 +338,28 @@ document.querySelectorAll('.close-sub-modal').forEach(btn => {
     }
 });
 
+// Accept Folder Logic
+safeBind('btn-select-accept-folder-path', 'onclick', async () => {
+    const path = await window.api.selectFolder();
+    if (path) document.getElementById('accept-folder-path').value = path;
+});
+
+safeBind('btn-confirm-accept-folder', 'onclick', async () => {
+    const id = document.getElementById('accept-folder-id').value;
+    const label = document.getElementById('accept-folder-label').value;
+    const path = document.getElementById('accept-folder-path').value;
+    const deviceId = document.getElementById('accept-folder-device').value;
+
+    if (!path) return alert('请选择本地保存路径');
+
+    // Add folder and share back with the sender
+    await window.api.addSyncthingFolder({ id, label, path, devices: [deviceId] });
+    
+    document.getElementById('modal-accept-folder').classList.add('hidden');
+    alert(`已接受文件夹 "${label}"，开始同步。`);
+    refreshSyncthingLists();
+});
+
 // Helper for safe event binding
 function safeBind(id, event, handler) {
     const el = document.getElementById(id);
@@ -326,8 +373,12 @@ function safeBind(id, event, handler) {
 // Syncthing Actions
 safeBind('btn-copy-id', 'onclick', () => {
     const id = document.getElementById('my-device-id').value;
-    navigator.clipboard.writeText(id);
-    alert('ID 已复制！');
+    navigator.clipboard.writeText(id).then(() => {
+        alert('ID 已复制！');
+    }).catch(err => {
+        console.error('Copy failed', err);
+        alert('复制失败，请手动复制。');
+    });
 });
 
 function changeDate(delta) {

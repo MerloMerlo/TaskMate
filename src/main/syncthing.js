@@ -12,6 +12,7 @@ class SyncthingManager {
         this.process = null;
         this.apiKey = null;
         this.apiUrl = 'http://127.0.0.1:8385'; // Default custom port
+        this.eventLoopRunning = false;
     }
 
     getBinaryPath() {
@@ -95,10 +96,57 @@ class SyncthingManager {
     }
 
     async stop() {
+        this.eventLoopRunning = false;
         if (this.process) {
             this.process.kill();
             this.process = null;
         }
+    }
+
+    async startEventLoop(callback) {
+        if (this.eventLoopRunning) return;
+        this.eventLoopRunning = true;
+        let lastId = 0;
+
+        console.log("Starting Syncthing event loop...");
+
+        // Run in background
+        (async () => {
+            while (this.eventLoopRunning) {
+                try {
+                    if (!this.apiKey) {
+                        await new Promise(r => setTimeout(r, 1000));
+                        continue;
+                    }
+                    
+                    // Long polling, waits up to 60s by default if no events
+                    // Use a separate fetch call to avoid timeout issues with the wrapper if it has one
+                    const res = await fetch(`${this.apiUrl}/rest/events?since=${lastId}&limit=1`, {
+                        headers: { 'X-API-Key': this.apiKey }
+                    });
+                    
+                    if (!res.ok) {
+                        if (res.status === 403) await this.loadApiKey();
+                        throw new Error(`Event API Error: ${res.status}`);
+                    }
+
+                    const events = await res.json();
+                    
+                    for (const event of events) {
+                        lastId = event.id;
+                        if (event.type === 'DeviceRejected') {
+                            callback({ type: 'device-rejected', data: event.data });
+                        } else if (event.type === 'FolderRejected') {
+                            callback({ type: 'folder-rejected', data: event.data });
+                        }
+                    }
+                } catch (e) {
+                    // If error (e.g. syncthing not started yet), wait a bit
+                    // console.error("Event loop error:", e.message);
+                    await new Promise(r => setTimeout(r, 5000));
+                }
+            }
+        })();
     }
 
     // API Wrappers
