@@ -23,6 +23,7 @@
   "dependencies": {
     "chokidar": "^3.5.3",
     "fs-extra": "^11.2.0",
+    "node-fetch": "^2.7.0",
     "uuid": "^9.0.1"
   },
   "build": {
@@ -40,6 +41,13 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
-    }
+    },
+    "extraResources": [
+      {
+        "from": "bin",
+        "to": "bin",
+        "filter": ["**/*"]
+      }
+    ]
   }
 }

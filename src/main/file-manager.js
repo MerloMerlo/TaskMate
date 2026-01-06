@@ -18,7 +18,7 @@ class FileManager {
             const decrypted = decrypt(content, password);
             return JSON.parse(decrypted);
         } catch (err) {
-            console.error(`Failed to load ${filePath}:`, err.message);
+            // console.error(`Failed to load ${filePath}:`, err.message); // Suppress noise
             return { _error: true, message: err.message };
         }
     }

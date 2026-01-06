@@ -24,3 +24,11 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
+
+# TaskMate Specific
+syncthing-config/
+TaskMate_Sync/
+bin/
+*.enc
+.trae/

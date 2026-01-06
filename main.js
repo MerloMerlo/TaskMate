@@ -2,9 +2,12 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs-extra');
 const fileManager = require('./src/main/file-manager');
+const SyncthingManager = require('./src/main/syncthing');
 
 let mainWindow;
 const CONFIG_PATH = path.join(app.getPath('userData'), 'config.json');
+const syncthing = new SyncthingManager(app.getPath('userData'));
+
 let appConfig = {
     username: '',
     syncDir: '',
@@ -46,6 +49,9 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+    // Start Syncthing
+    syncthing.start().catch(console.error);
+
     await loadConfig();
     createWindow();
 
@@ -54,11 +60,56 @@ app.whenReady().then(async () => {
     });
 });
 
+app.on('will-quit', async () => {
+    await syncthing.stop();
+});
+
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
 
 // IPC Handlers
+
+// Syncthing IPC
+ipcMain.handle('st-get-id', async () => {
+    return await syncthing.getMyId();
+});
+
+ipcMain.handle('st-get-config', async () => {
+    return await syncthing.getConfig();
+});
+
+ipcMain.handle('st-add-device', async (event, { id, name }) => {
+    await syncthing.addDevice(id, name);
+});
+
+ipcMain.handle('st-add-folder', async (event, { id, label, path, devices }) => {
+    await syncthing.addFolder(id, label, path, devices);
+});
+
+ipcMain.handle('st-remove-device', async (event, id) => {
+    await syncthing.removeDevice(id);
+});
+
+ipcMain.handle('st-remove-folder', async (event, id) => {
+    await syncthing.removeFolder(id);
+});
+
+ipcMain.handle('st-pause-device', async (event, id) => {
+    await syncthing.setDevicePause(id, true);
+});
+
+ipcMain.handle('st-resume-device', async (event, id) => {
+    await syncthing.setDevicePause(id, false);
+});
+
+ipcMain.handle('st-pause-folder', async (event, id) => {
+    await syncthing.setFolderPause(id, true);
+});
+
+ipcMain.handle('st-resume-folder', async (event, id) => {
+    await syncthing.setFolderPause(id, false);
+});
 
 ipcMain.handle('get-config', () => appConfig);
 
@@ -66,7 +117,9 @@ ipcMain.handle('save-config', async (event, newConfig) => {
     appConfig = { ...appConfig, ...newConfig };
     await fs.writeJson(CONFIG_PATH, appConfig);
     
-    // Restart watcher
+    // Auto-init syncthing folder logic removed to prevent duplicates
+    // Users should manage folders in the Sync Network tab
+    
     if (appConfig.syncDir) {
         fileManager.startWatching(appConfig.syncDir, () => {
             if (mainWindow) mainWindow.webContents.send('data-updated');
