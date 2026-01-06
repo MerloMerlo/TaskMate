@@ -50,9 +50,9 @@ class SyncthingManager {
         }
 
         this.process = spawn(this.binPath, [
-            '-home', this.configPath,
-            '-no-browser',
-            '-gui-address', '127.0.0.1:8385'
+            '--home', this.configPath,
+            '--no-browser',
+            '--gui-address', '127.0.0.1:8385'
         ]);
 
         this.process.stdout.on('data', (data) => {
@@ -68,6 +68,7 @@ class SyncthingManager {
         // Wait for config generation
         await this.waitForConfig();
         await this.loadApiKey();
+        await this.waitForApi();
     }
 
     async waitForConfig() {
@@ -79,6 +80,22 @@ class SyncthingManager {
             retries++;
         }
         throw new Error('Syncthing config creation timed out');
+    }
+
+    async waitForApi() {
+        let retries = 0;
+        while (retries < 30) { // Wait up to 30 seconds
+            try {
+                await this.fetchApi('/rest/system/status');
+                console.log('Syncthing API is ready');
+                return;
+            } catch (e) {
+                // Ignore errors and retry
+                await new Promise(r => setTimeout(r, 1000));
+                retries++;
+            }
+        }
+        console.warn('Syncthing API failed to become ready in time, but proceeding...');
     }
 
     async loadApiKey() {
@@ -201,10 +218,24 @@ class SyncthingManager {
 
     async fetchApi(endpoint) {
         if (!this.apiKey) await this.loadApiKey();
-        const res = await fetch(`${this.apiUrl}${endpoint}`, {
-            headers: { 'X-API-Key': this.apiKey }
-        });
-        return await res.json();
+        
+        let lastError;
+        for (let i = 0; i < 3; i++) {
+            try {
+                const res = await fetch(`${this.apiUrl}${endpoint}`, {
+                    headers: { 'X-API-Key': this.apiKey }
+                });
+                return await res.json();
+            } catch (e) {
+                lastError = e;
+                if (e.code === 'ECONNREFUSED') {
+                    await new Promise(r => setTimeout(r, 500)); // Wait 500ms before retry
+                    continue;
+                }
+                throw e;
+            }
+        }
+        throw lastError;
     }
 
     async postApi(endpoint, body) {
