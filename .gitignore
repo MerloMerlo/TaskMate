@@ -29,6 +29,6 @@ yarn-error.log*
 # TaskMate Specific
 syncthing-config/
 TaskMate_Sync/
-bin/
 *.enc
 .trae/
+
