@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('api', {
 
     // Events
     onDataUpdate: (callback) => ipcRenderer.on('data-updated', callback),
+    onSyncthingEvent: (callback) => ipcRenderer.on('syncthing-event', callback),
     
     // System
     minimize: () => ipcRenderer.invoke('minimize-window'),

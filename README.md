@@ -15,6 +15,14 @@
     *   **临时新增任务**：自动标记为绿色“新”字标签。
 *   **跨平台**：完美支持 Windows 和 macOS。
 
+## 📸 界面预览
+
+### 每日计划与复盘
+![每日计划](https://i.ibb.co/3ymwXjK/image.png)
+
+### 团队看板
+![团队看板](https://i.ibb.co/C0M1gXx/image.png)
+
 ---
 
 ## 🛠️ 快速开始

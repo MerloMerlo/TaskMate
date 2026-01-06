@@ -50,7 +50,14 @@ function createWindow() {
 
 app.whenReady().then(async () => {
     // Start Syncthing
-    syncthing.start().catch(console.error);
+    syncthing.start().then(() => {
+        // Start Event Loop after syncthing starts
+        syncthing.startEventLoop((event) => {
+            if (mainWindow) {
+                mainWindow.webContents.send('syncthing-event', event);
+            }
+        });
+    }).catch(console.error);
 
     await loadConfig();
     createWindow();
