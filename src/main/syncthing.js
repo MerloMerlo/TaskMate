@@ -13,6 +13,7 @@ class SyncthingManager {
         this.apiKey = null;
         this.apiUrl = 'http://127.0.0.1:8385'; // Default custom port
         this.eventLoopRunning = false;
+        this.initPromise = null;
     }
 
     getBinaryPath() {
@@ -33,43 +34,47 @@ class SyncthingManager {
     }
 
     async start() {
-        if (this.process) return;
+        if (this.initPromise) return this.initPromise;
 
-        // Ensure config dir exists
-        await fs.ensureDir(this.configPath);
-
-        console.log(`Starting Syncthing from: ${this.binPath}`);
-        console.log(`Config path: ${this.configPath}`);
-
-        // Ensure binary is executable on macOS/Linux
-        if (process.platform !== 'win32') {
-            try {
-                await fs.chmod(this.binPath, 0o755);
-            } catch (e) {
-                console.error('Failed to set executable permissions:', e);
+        this.initPromise = (async () => {
+            // Ensure config dir exists
+            await fs.ensureDir(this.configPath);
+    
+            console.log(`Starting Syncthing from: ${this.binPath}`);
+            console.log(`Config path: ${this.configPath}`);
+    
+            // Ensure binary is executable on macOS/Linux
+            if (process.platform !== 'win32') {
+                try {
+                    await fs.chmod(this.binPath, 0o755);
+                } catch (e) {
+                    console.error('Failed to set executable permissions:', e);
+                }
             }
-        }
+    
+            this.process = spawn(this.binPath, [
+                '--home', this.configPath,
+                '--no-browser',
+                '--gui-address', '127.0.0.1:8385'
+            ]);
+    
+            this.process.stdout.on('data', (data) => {
+                console.log(`[Syncthing]: ${data}`);
+                // Extract API Key from logs on first run if needed, 
+                // but better to read config.xml
+            });
+    
+            this.process.stderr.on('data', (data) => {
+                console.error(`[Syncthing Err]: ${data}`);
+            });
+    
+            // Wait for config generation
+            await this.waitForConfig();
+            await this.loadApiKey();
+            await this.waitForApi();
+        })();
 
-        this.process = spawn(this.binPath, [
-            '--home', this.configPath,
-            '--no-browser',
-            '--gui-address', '127.0.0.1:8385'
-        ]);
-
-        this.process.stdout.on('data', (data) => {
-            console.log(`[Syncthing]: ${data}`);
-            // Extract API Key from logs on first run if needed, 
-            // but better to read config.xml
-        });
-
-        this.process.stderr.on('data', (data) => {
-            console.error(`[Syncthing Err]: ${data}`);
-        });
-
-        // Wait for config generation
-        await this.waitForConfig();
-        await this.loadApiKey();
-        await this.waitForApi();
+        return this.initPromise;
     }
 
     async waitForConfig() {
@@ -87,7 +92,10 @@ class SyncthingManager {
         let retries = 0;
         while (retries < 30) { // Wait up to 30 seconds
             try {
-                await this.fetchApi('/rest/system/status');
+                // Do not use fetchApi() here to avoid circular dependency on initPromise
+                await fetch(`${this.apiUrl}/rest/system/status`, {
+                    headers: { 'X-API-Key': this.apiKey }
+                });
                 console.log('Syncthing API is ready');
                 return;
             } catch (e) {
@@ -265,6 +273,15 @@ class SyncthingManager {
     }
 
     async fetchApi(endpoint) {
+        // Wait for initialization to complete if it's running
+        if (this.initPromise) {
+            try {
+                await this.initPromise;
+            } catch (e) {
+                console.warn('Syncthing init failed, proceeding to API call anyway:', e);
+            }
+        }
+
         if (!this.apiKey) await this.loadApiKey();
         
         let lastError;
@@ -287,6 +304,15 @@ class SyncthingManager {
     }
 
     async postApi(endpoint, body) {
+        // Wait for initialization to complete if it's running
+        if (this.initPromise) {
+            try {
+                await this.initPromise;
+            } catch (e) {
+                console.warn('Syncthing init failed, proceeding to API call anyway:', e);
+            }
+        }
+
         if (!this.apiKey) await this.loadApiKey();
         const res = await fetch(`${this.apiUrl}${endpoint}`, {
             method: 'POST',
